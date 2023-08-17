@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>TP RULIN MAGALI</title>
+    <link rel='s.tylesheet' href='https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css'>
+    <script src='https://code.jquery.com/jquery-1.12.4.js'></script>
+    <script src='https://code.jquery.com/ui/1.12.1/jquery-ui.js'></script>
+    <link rel="stylesheet" href="estilo TP RULIN.css">
+    <script>
+        const url = 'https://8910-181-231-122-56.ngrok-free.app/student';
+
+$(document).ready(function () {
+    $('#ventana').hide();
+    $('#addStudentBtn').click(saveStudent);
+    getStudents();
+});
+
+function makeRequest(method, endpoint, bodyData) {
+    return new Promise(function (resolve, reject) {
+        $.ajax({
+            url: url + endpoint,
+            method: method,
+            dataType: 'json',
+            contentType: 'application/json',
+            data: bodyData,
+            success: function (response) {
+                resolve(response);
+            },
+            error: function (xhr, status, error) {
+                reject(Error(status + ': ' + error));
+            }
+        });
+    });
+}
+
+function loadStudents() {
+    return makeRequest('GET', '/getAll', null);
+}
+
+function addStudent(studentData) {
+    return makeRequest('POST', '', studentData);
+}
+
+function removeStudent(id) {
+    return makeRequest('POST', `/${id}/delete`, null);
+}
+
+function modifyStudent(id, updatedData) {
+    return makeRequest('POST', `/${id}/update`, updatedData);
+}
+
+function getStudents() {
+    loadStudents().then(response => {
+        var tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        var totalStudents = 0; 
+
+        response.forEach(element => {
+            var row = tbody.insertRow();
+
+            var id = row.insertCell();
+            id.innerHTML = element.id;
+
+            var dni = row.insertCell();
+            dni.innerHTML = element.dni;
+
+            var firstName = row.insertCell();
+            firstName.innerHTML = element.firstName;
+
+            var lastName = row.insertCell();
+            lastName.innerHTML = element.lastName;
+
+            var email = row.insertCell();
+            email.innerHTML = element.email;
+
+            var student = JSON.stringify({
+                'id': element.id,
+                'dni': element.dni,
+                'lastName': element.lastName,
+                'firstName': element.firstName,
+                'email': element.email
+            });
+
+            var selectCell = row.insertCell();
+            selectCell.innerHTML = `
+                <button onclick='viewStudent(${student})'>View</button>
+                <button onclick='deleteStudent(${element.id})'>Delete</button>`;
+
+            totalStudents++; 
+        });
+
+        
+        document.getElementById('total-students').textContent = totalStudents;
+    });
+}
+
+
+function saveStudent() {
+    if ($('#dni').val().trim() !== '' &&
+        $('#lastName').val().trim() !== '' &&
+        $('#firstName').val().trim() !== '' &&
+        $('#email').val().trim() !== '') {
+        var studentData = JSON.stringify({
+            'dni': $('#dni').val(),
+            'lastName': $('#lastName').val(),
+            'firstName': $('#firstName').val(),
+            'email': $('#email').val(),
+            'cohort': '0',
+            'status': 'activo',
+            'gender': 'masculino',
+            'address': 'abc123',
+            'phone': '000'
+        });
+        addStudent(studentData).then(function () {
+            getStudents();
+        }).catch(function (reason) {
+            getStudents();
+            console.error(reason);
+        });
+    }
+}
+
+function viewStudent(student) {
+    var id = document.getElementById('id-div');
+    id.innerHTML = student.id;
+    $('input[name="dni2"]').val(student.dni);
+    $('input[name="lastName2"]').val(student.lastName);
+    $('input[name="firstName2"]').val(student.firstName);
+    $('input[name="email2"]').val(student.email);
+    $('#ventana').dialog({
+        closeText: ''
+    }).css('font-size', '15px');
+}
+
+function deleteStudent(id) {
+    removeStudent(id).then(function () {
+        getStudents();
+    }).catch(function (reason) {
+        getStudents();
+    });
+}
+
+function updateStudent() {
+    var id = document.getElementById('id-div')
+
+    if ($('input[name="dni2"]').val().trim !== '' &&
+        $('input[name="lastName2"]').val().trim() !== '' &&
+        $('input[name="firstName2"]').val().trim() !== '' &&
+        $('input[name="email2"]').val().trim() !== '') {
+        var updatedData = JSON.stringify({
+            'dni': $('input[name="dni2"]').val(),
+            'lastName': $('input[name="lastName2"]').val(),
+            'firstName': $('input[name="firstName2"]').val(),
+            'email': $('input[name="email2"]').val(),
+            'cohort': '0',
+            'status': 'activo',
+            'gender': 'masculino',
+            'address': 'abc123',
+            'phone': '000'
+        });
+        modifyStudent(id.innerHTML, updatedData).then(function () {
+            $('#ventana').dialog('close');
+            getStudents();
+        }).catch(function (reason) {
+            $('#ventana').dialog('close');
+            getStudents();
+        });
+    }
+}
+
+    </script>
+</head>
+
+<body>
+    <table style='border: 1px solid'>
+        <thead>
+            <tr>
+                <th style='text-align: left'>Id</th>
+                <th style='text-align: left'>Dni</th>
+                <th style='text-align: left'>Last Name</th>
+                <th style='text-align: left'>First Name</th>
+                <th style='text-align: left'>Email</th>
+                <th colspan='2'></th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td><input id='dni' /></td>
+                <td><input id='lastName' /></td>
+                <td><input id='firstName' /></td>
+                <td><input id='email' /></td>
+                <td colspan='2' style='text-align: center'><button id='addStudentBtn'>Add</button></td>
+            </tr>
+        </tfoot>
+    </table>
+    <p>Total Students: <span id="total-students">0</span></p>
+
+    <div id='ventana'>
+        <table>
+            <tr>
+                <td><div style='font-weight: bold'>ID: <div id="id-div"></div></div></td>
+            </tr>
+            <tr>
+                <td><label for='dni2' style='font-weight: bold'>DNI</label></td>
+                <td><input name='dni2' style='text-align: right'></td>
+            </tr>
+            <tr>
+                <td><label for='lastName2' style='font-weight: bold'>Last Name</label></td>
+                <td><input name='lastName2' style='text-align: right'/></td>
+            </tr>
+            <tr>
+                <td><label for='firstName2' style='font-weight: bold'>First Name</label></td>
+                <td><input name='firstName2' style='text-align: right'/></td>
+            </tr>
+            <tr>
+                <td><label for='email2' style='font-weight: bold'>Email</label></td>
+                <td><input name='email2' style='text-align: right'/></td>
+            </tr>
+            <tr>
+                <td colspan='2' style='text-align: center'><button id='updateStudentBtn' onclick="updateStudent()">Update</button></td>
+            </tr>
+        </table>
+    </div>
+
+   
+</body>
+
+</html>

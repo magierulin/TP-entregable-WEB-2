@@ -1,0 +1,40 @@
+
+    body {
+        background-color: white;
+        color: black;
+        font-family: Arial, sans-serif;
+      }
+      
+      table {
+        background-color: #e6e6fa;
+      }
+      
+      thead th {
+        background-color: purple;
+        color: white;
+      }
+      
+      tfoot th {
+        background-color: purple;
+        color: white;
+      }
+      
+      tfoot td {
+        background-color: #e6e6fa;
+      }
+      
+      button {
+
+        background-color: purple;
+        color: white;
+        font-family: Arial, sans-serif;
+      }
+      p{
+        background-color: purple;
+        color: white;
+        font-family: Arial, bold;
+
+      }
+      
+
+    
